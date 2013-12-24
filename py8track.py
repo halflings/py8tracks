@@ -2,17 +2,49 @@ import requests
 import json
 import urllib
 
+class Track(object):
+	def __init__(self, data, api):
+		self.data = data
+		self.api = api
+
+	def __str__(self):
+		string = str()
+		string += '. Track : {}\n'.format(self.data['name'].encode('utf-8'))
+		string += '. Url   : {}'.format(self.data['url']) 
+
+		return string
+
 class Mix(object):
-	def __init__(self, data):
-		self.id = data['id']
-		self.name = data['name']
+	def __init__(self, data, api):
+		self.api = api
 
-	def play():
-		pass
+		self.data = data
 
-	# TODO : give this binding some Object-Oriented goodness
+		self.play_token = None
+		self.current = None
 
-class Client8track(object):
+	def __iter__(self):
+		return self
+
+	def next(self):
+		# If the mix haven't been played yet ...
+		if self.current is None:
+			self.play_token = api.play_token()
+			self.current = self.api.play_mix(self.data['id'], self.play_token)
+		else:
+			self.current = self.api.next_track(self.data['id'], self.play_token)
+
+		# If we played all the mix's songs
+		if self.current and self.current['at_end']:
+			raise StopIteration("Mix exhausted: No more tracks to play")
+
+		return self.current['track']
+
+
+	def __str__(self):
+		return "Mix #{} ('{}') - {} tracks".format(self.data['id'], self.data['name'], self.data['tracks_count'])
+
+class API8tracks(object):
 	BASE_URL = 'http://8tracks.com'
 
 	def __init__(self, api_key, api_version=2):
@@ -25,7 +57,7 @@ class Client8track(object):
 			params.update(additional_params)
 
 		# Building the query url
-		query_url = '{}/{}.json'.format(Client8track.BASE_URL, path)
+		query_url = '{}/{}.json'.format(API8tracks.BASE_URL, path)
 
 		response = requests.get(query_url, params=params)
 		if not response.ok:
@@ -53,7 +85,12 @@ class Client8track(object):
 		path = 'mix_sets/{}'.format(smart_id)
 		params = dict(includes=includes)
 
-		return self._request(path, params)
+		mixset = self._request(path, params)
+
+		# Instantiating mixes
+		mixset['mixes'] = [Mix(data, self) for data in mixset['mixes']]
+
+		return mixset
 
 	def play_token(self):
 		return self._request('sets/new')['play_token']
@@ -61,13 +98,16 @@ class Client8track(object):
 	def play_mix(self, mix_id, play_token):
 		path = 'sets/{}/play'.format(play_token)
 		params = dict(mix_id=mix_id)
-		return self._request(path, params)['set']
+		playback = self._request(path, params)['set']
+		playback['track'] = Track(playback['track'], self)
+		return playback
 
 	def next_track(self, mix_id, play_token):
 		path = 'sets/{}/next'.format(play_token)
 		params = dict(mix_id=mix_id)
-		return self._request(path, params)['set']
-
+		playback = self._request(path, params)['set']
+		playback['track'] = Track(playback['track'], self)
+		return playback
 
 	def report_track(self, mix_id, track_id):
 		params = dict(track_id=track_id, mix_id=mix_id)
@@ -82,7 +122,7 @@ if __name__ == '__main__':
 		api_key = config['api_key']
 
 	# Initializing the API
-	api = Client8track(api_key)
+	api = API8tracks(api_key)
 
 	# Search mixes based on multiple criterias
 	tags = ['classical', 'baroque']
@@ -90,15 +130,10 @@ if __name__ == '__main__':
 	mixes = mixset['mixes']
 	print 'Found {} mixes for the tags: {}'.format(len(mixes), ', '.join(tags))
 
-	hottest_mix = mixes[0]
-	print '  - Playing the hottest mix: {}'.format(hottest_mix['name'])
-
-	play_token = api.play_token()
-	playback = api.play_mix(hottest_mix['id'], play_token)
-
-	while not playback['at_end']:
-		name, url = playback['track']['name'].encode('utf-8'), playback['track']['url']
-		print '    . Track : {}'.format(name)
-		print '    . Url   : {}'.format(url)
-		print '    ' + '-'*60
-		playback = api.next_track(hottest_mix['id'], play_token)
+	for mix in mixes:
+		print ""
+		print mix
+		print ""
+		for song in mix:
+			print song
+			print '-' * 80
