@@ -85,7 +85,7 @@ if __name__ == '__main__':
 	api = Client8track(api_key)
 
 	# Search mixes based on multiple criterias
-	tags = ['hiphop', 'west']
+	tags = ['classical', 'baroque']
 	mixset = api.mixset(tags=tags, sort='hot') 
 	mixes = mixset['mixes']
 	print 'Found {} mixes for the tags: {}'.format(len(mixes), ', '.join(tags))
@@ -97,5 +97,8 @@ if __name__ == '__main__':
 	playback = api.play_mix(hottest_mix['id'], play_token)
 
 	while not playback['at_end']:
-		print '    . Track : {} - Url: {}'.format(playback['track']['name'], playback['track']['url'])
+		name, url = playback['track']['name'].encode('utf-8'), playback['track']['url']
+		print '    . Track : {}'.format(name)
+		print '    . Url   : {}'.format(url)
+		print '    ' + '-'*60
 		playback = api.next_track(hottest_mix['id'], play_token)
