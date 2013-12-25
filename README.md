@@ -1,6 +1,7 @@
 # py8tracks
 
-A minimal Python binding for 8tracks. Supports searching and playing mixes. WIP.
+A minimal Python binding for 8tracks. Supports MixSets, (playing & fetching similar) mixes, ...
+Work in progress.
 
 ## Example
 

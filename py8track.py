@@ -26,8 +26,9 @@ class Track(object):
 
 	def __str__(self):
 		string = str()
-		string += '. Track : {}\n'.format(self.data['name'].encode('utf-8'))
-		string += '. Url   : {}'.format(self.data['url']) 
+		string += '. Track       : {}\n'.format(self.data['name'].encode('utf-8'))
+		string += '. 8Tracks URL : {}\n'.format(self.data['url'])
+		string += '. Stream URL  : {}'.format(self.data['track_file_stream_url'])
 
 		return string
 
@@ -37,12 +38,16 @@ class Mix(object):
 
 		self.data = data
 
-		self.play_token = None
-		
+		self._play_token = None
+
 		# Current 'playback' value. Contains a track. (unless it's the end of the mix)
 		self.current = None
 
 		self.tracks_cache = []
+
+	@property
+	def play_token(self):
+	    return self._play_token if self._play_token else self.api.play_token()
 
 	def __iter__(self):
 		return self
@@ -50,13 +55,12 @@ class Mix(object):
 	def next(self):
 		# If the mix haven't been played yet ...
 		if self.current is None:
-			self.play_token = api.play_token()
 			self.current = self.api.play_mix(self.data['id'], self.play_token, first=True)
 		else:
 			self.current = self.api.play_mix(self.data['id'], self.play_token, first=False)
 
 		# If we played all the mix's songs
-		if self.current and self.current['at_end']:
+		if self.current['at_end']:
 			raise StopIteration("Mix exhausted: No more tracks to play")
 
 		self.tracks_cache.append(self.current['track'])	
@@ -64,9 +68,7 @@ class Mix(object):
 		return self.current['track']
 
 	def similar(self):
-		# TODO : Implement this
-		pass
-
+		return self.api.similar_mix(self.play_token, self.data['id'])
 
 	def __str__(self):
 		return "Mix #{} ('{}') - {} tracks".format(self.data['id'], self.data['name'], self.data['tracks_count'])
@@ -89,7 +91,7 @@ class API8tracks(object):
 
 		response = requests.get(query_url, params=params)
 		if not response.ok:
-			raise requests.HTTPError("Error while consuming the API.")
+			raise requests.HTTPError("Error while consuming the API with query: {}".format(response.request.path_url))
 		else:
 			return response.json()
 
@@ -131,11 +133,16 @@ class API8tracks(object):
 		playback = self._request(path, params)['set']
 		playback['track'] = Track(playback['track'], mix_id, api=self)
 		return playback
-
+		
 	def report_track(self, mix_id, track_id):
 		params = dict(track_id=track_id, mix_id=mix_id)
 		return self._request('sets/{}/report', params)
 
+	def similar_mix(self, play_token, mix_id):
+		path = 'sets/{}/next_mix'.format(play_token)
+		params = dict(mix_id=mix_id)
+		mix_data = self._request(path, sup_params=params)['next_mix']
+		return Mix(mix_data, api=self)
 
 
 if __name__ == '__main__':
@@ -152,6 +159,7 @@ if __name__ == '__main__':
 	mixset = api.mixset(tags=tags, sort='popular') 
 	print mixset
 	for mix in mixset.mixes:
+		print ""
 		print mix
 		for song in mix:
 			print song
