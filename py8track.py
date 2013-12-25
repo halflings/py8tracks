@@ -1,6 +1,18 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import requests
 import json
 import urllib
+
+class MixSet(object):
+	def __init__(self, data, api):
+		self.api = api
+		self.data = data
+		self.mixes = [Mix(mix_data, api=self.api) for mix_data in self.data['mixes']]
+
+	def __str__(self):
+		return "MixSet '{}' ({}) - {} mixes".format(self.data['name'], self.data['smart_id'], len(self.mixes))
 
 class Track(object):
 	def __init__(self, data, mix_id, api):
@@ -26,7 +38,11 @@ class Mix(object):
 		self.data = data
 
 		self.play_token = None
+		
+		# Current 'playback' value. Contains a track. (unless it's the end of the mix)
 		self.current = None
+
+		self.tracks_cache = []
 
 	def __iter__(self):
 		return self
@@ -42,6 +58,8 @@ class Mix(object):
 		# If we played all the mix's songs
 		if self.current and self.current['at_end']:
 			raise StopIteration("Mix exhausted: No more tracks to play")
+
+		self.tracks_cache.append(self.current['track'])	
 
 		return self.current['track']
 
@@ -75,7 +93,7 @@ class API8tracks(object):
 		else:
 			return response.json()
 
-	def mixset(self, safe=True, tags=None, sort=None, include=None):
+	def mixset(self, safe=False, tags=None, sort=None, include=None):
 		smart_id = None
 
 		if tags:
@@ -95,10 +113,9 @@ class API8tracks(object):
 		if include:
 			params['include'] += '+' + '+'.join(include)
 
-		mixset = self._request(path, sup_params=params)['mix_set']
+		mixset_data = self._request(path, sup_params=params)['mix_set']
 
-		# Instantiating mixes
-		mixset['mixes'] = [Mix(data, api=self) for data in mixset['mixes']]
+		mixset = MixSet(mixset_data, api=self)
 
 		return mixset
 
@@ -132,14 +149,10 @@ if __name__ == '__main__':
 
 	# Search mixes based on multiple criterias
 	tags = ['classical', 'baroque']
-	mixset = api.mixset(tags=tags, sort='hot') 
-	mixes = mixset['mixes']
-	print 'Found {} mixes for the tags: {}'.format(len(mixes), ', '.join(tags))
-
-	for mix in mixes:
-		print ""
+	mixset = api.mixset(tags=tags, sort='popular') 
+	print mixset
+	for mix in mixset.mixes:
 		print mix
-		print ""
 		for song in mix:
 			print song
 			print '-' * 80

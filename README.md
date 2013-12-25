@@ -11,14 +11,10 @@ Let's see an example showing many features of the 8tracks API:
 
 	# Search mixes based on multiple criterias
 	tags = ['classical', 'baroque']
-	mixset = api.mixset(tags=tags, sort='hot') 
-	mixes = mixset['mixes']
-	print 'Found {} mixes for the tags: {}'.format(len(mixes), ', '.join(tags))
-
-	for mix in mixes:
-		print ""
+	mixset = api.mixset(tags=tags, sort='popular') 
+	print mixset
+	for mix in mixset.mixes:
 		print mix
-		print ""
 		for song in mix:
 			print song
 			print '-' * 80
@@ -26,51 +22,57 @@ Let's see an example showing many features of the 8tracks API:
 
 Here's the output of this program:
 
-	Found 12 mixes for the tags: classical, baroque
-
-	Mix #3010408 ('Baroque II') - 9 tracks
-
-	. Track : Canon in D major (best version)
-	. Url   : http://api.soundcloud.com/tracks/1769106/stream?client_id=3904229f42df3999df223f6ebf39a8fe
-	--------------------------------------------------------------------------------
-	. Track : Bach , Sinfonia in G
-	. Url   : https://api.soundcloud.com/tracks/33741868/stream?client_id=3904229f42df3999df223f6ebf39a8fe
-	--------------------------------------------------------------------------------
-	. Track : III. allegro assai
-	. Url   : https://api.soundcloud.com/tracks/25188290/stream?client_id=3904229f42df3999df223f6ebf39a8fe
-	--------------------------------------------------------------------------------
-	. Track : Concerto For Guitar, Violin And Orche
-	. Url   : https://api.soundcloud.com/tracks/52184301/stream?client_id=3904229f42df3999df223f6ebf39a8fe
-	--------------------------------------------------------------------------------
-	. Track : 14 心的依歸／耶穌，世人仰望的喜悅 Jesu ,Joy of Man s Desiring, BWV147,from Herz und Mund und Tat und Leben
-	. Url   : https://api.soundcloud.com/tracks/93540992/stream?client_id=3904229f42df3999df223f6ebf39a8fe
-	--------------------------------------------------------------------------------
-	. Track : Rondeau from Premiere Suite de Symphonies (Mouret)
-	. Url   : https://api.soundcloud.com/tracks/53051723/stream?client_id=3904229f42df3999df223f6ebf39a8fe
-	--------------------------------------------------------------------------------
-	. Track : HANDEL Water Music Suite No.2: Alla hornpipe
-	. Url   : https://api.soundcloud.com/tracks/54774872/stream?client_id=3904229f42df3999df223f6ebf39a8fe
-	--------------------------------------------------------------------------------
-	. Track : Bach, Air on G String
-	. Url   : https://api.soundcloud.com/tracks/46696885/stream?client_id=3904229f42df3999df223f6ebf39a8fe
-	--------------------------------------------------------------------------------
-	. Track : Handel – Messiah Hallelujah Chorus (from 50 Best Baroque Hits)
-	. Url   : https://api.soundcloud.com/tracks/50091148/stream?client_id=3904229f42df3999df223f6ebf39a8fe
-	--------------------------------------------------------------------------------
-
+	MixSet 'Baroque + classical' (tags:classical+baroque:popular) - 12 mixes
 	Mix #2940510 ('Baroque') - 15 tracks
-
 	. Track : Der Motettenchor: Heinrich Schütz „Die mit Tränen säen“
-	. Url   : https://api.soundcloud.com/tracks/49034525/stream?client_id=3904229f42df3999df223f6ebf39a8fe
+	. Url   : http://8tracks.com/tracks/22695024
 	--------------------------------------------------------------------------------
 	. Track : Canzon prima detta la Roveta
-	. Url   : https://api.soundcloud.com/tracks/54688348/stream?client_id=3904229f42df3999df223f6ebf39a8fe
+	. Url   : http://8tracks.com/tracks/22694904
 	--------------------------------------------------------------------------------
 	. Track : Magnificat
-	. Url   : https://api.soundcloud.com/tracks/58035110/stream?client_id=3904229f42df3999df223f6ebf39a8fe
+	. Url   : http://8tracks.com/tracks/22694816
 	--------------------------------------------------------------------------------
 	. Track : Prelude
-	. Url   : https://api.soundcloud.com/tracks/58934014/stream?client_id=3904229f42df3999df223f6ebf39a8fe
+	. Url   : http://8tracks.com/tracks/22695205
 	--------------------------------------------------------------------------------
-
-	....
+	. Track : Marche pour la cérémonie des Turcs
+	. Url   : http://8tracks.com/tracks/21153796
+	--------------------------------------------------------------------------------
+	. Track : Domenico Scarlatti Sonata L 366
+	. Url   : http://8tracks.com/tracks/22694599
+	--------------------------------------------------------------------------------
+	. Track : Samuel Scheidt: Variationen über Bergamasca
+	. Url   : http://8tracks.com/tracks/22694983
+	--------------------------------------------------------------------------------
+	. Track : Michael Praetorius
+	. Url   : http://8tracks.com/tracks/22694765
+	--------------------------------------------------------------------------------
+	. Track : Largo
+	. Url   : http://8tracks.com/tracks/22694736
+	--------------------------------------------------------------------------------
+	. Track : Arcangelo Corelli 'La Follia Variations' Op. 5
+	. Url   : http://8tracks.com/tracks/22694939
+	--------------------------------------------------------------------------------
+	. Track : Allegro
+	. Url   : http://8tracks.com/tracks/22695072
+	--------------------------------------------------------------------------------
+	. Track : Claudio Monteverdi, Si ch'io vorrei morire
+	. Url   : http://8tracks.com/tracks/22694848
+	--------------------------------------------------------------------------------
+	. Track : Antoine Charpentier
+	. Url   : http://8tracks.com/tracks/21526639
+	--------------------------------------------------------------------------------
+	. Track : 1630): "Lehre uns bedenken"
+	. Url   : http://8tracks.com/tracks/22694626
+	--------------------------------------------------------------------------------
+	. Track : Christy Panchal, Mezzo
+	. Url   : http://8tracks.com/tracks/22695117
+	--------------------------------------------------------------------------------
+	Mix #3010408 ('Baroque II') - 9 tracks
+	. Track : Canon in D major (best version)
+	. Url   : http://8tracks.com/tracks/7808034
+	--------------------------------------------------------------------------------
+	. Track : Bach , Sinfonia in G
+	. Url   : http://8tracks.com/tracks/22697906
+	--------------------------------------------------------------------------------
