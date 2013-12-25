@@ -144,6 +144,13 @@ class API8tracks(object):
 		mix_data = self._request(path, sup_params=params)['next_mix']
 		return Mix(mix_data, api=self)
 
+	def tags(self, query=None):
+		path = 'tags'
+		params = dict()
+		if query:
+			params['q'] = query
+		return self._request(path, sup_params=params)['tag_cloud']['tags']
+
 
 if __name__ == '__main__':
 	# Loading the API key from a configuration file
