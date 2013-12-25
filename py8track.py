@@ -3,9 +3,14 @@ import json
 import urllib
 
 class Track(object):
-	def __init__(self, data, api):
-		self.data = data
+	def __init__(self, data, mix_id, api):
 		self.api = api
+
+		self.data = data
+		self.mix_id = mix_id
+		
+	def report(self):
+		self.api.report_track(self.mix_id, self.data['id'])
 
 	def __str__(self):
 		string = str()
@@ -30,15 +35,19 @@ class Mix(object):
 		# If the mix haven't been played yet ...
 		if self.current is None:
 			self.play_token = api.play_token()
-			self.current = self.api.play_mix(self.data['id'], self.play_token)
+			self.current = self.api.play_mix(self.data['id'], self.play_token, first=True)
 		else:
-			self.current = self.api.next_track(self.data['id'], self.play_token)
+			self.current = self.api.play_mix(self.data['id'], self.play_token, first=False)
 
 		# If we played all the mix's songs
 		if self.current and self.current['at_end']:
 			raise StopIteration("Mix exhausted: No more tracks to play")
 
 		return self.current['track']
+
+	def similar(self):
+		# TODO : Implement this
+		pass
 
 
 	def __str__(self):
@@ -47,17 +56,18 @@ class Mix(object):
 class API8tracks(object):
 	BASE_URL = 'http://8tracks.com'
 
-	def __init__(self, api_key, api_version=2):
+	def __init__(self, api_key, api_version=3):
 		self.key = api_key
 		self.version = api_version
 
-	def _request(self, path, additional_params=None):
+	def _request(self, path, sup_params=None):
 		params = dict(api_key=self.key, api_version=self.version)
-		if additional_params:
-			params.update(additional_params)
+		if sup_params:
+			params.update(sup_params)
 
 		# Building the query url
 		query_url = '{}/{}.json'.format(API8tracks.BASE_URL, path)
+
 
 		response = requests.get(query_url, params=params)
 		if not response.ok:
@@ -65,16 +75,14 @@ class API8tracks(object):
 		else:
 			return response.json()
 
-	def mixset(self, safe=True, tags=None, sort=None, includes=None):
+	def mixset(self, safe=True, tags=None, sort=None, include=None):
 		smart_id = None
 
 		if tags:
 			tags = map(lambda s : urllib.quote(s), tags)
 			smart_id = 'tags:{}'.format('+'.join(tags))
-
 		if smart_id is None:
 			smart_id = 'all'
-
 		if sort:
 			if not sort.lower() in {'hot', 'recent', 'popular'}:
 				raise ValueError("Unknown sort type")
@@ -83,30 +91,28 @@ class API8tracks(object):
 			smart_id += ':safe'
 
 		path = 'mix_sets/{}'.format(smart_id)
-		params = dict(includes=includes)
+		params = dict(include='mixes')
+		if include:
+			params['include'] += '+' + '+'.join(include)
 
-		mixset = self._request(path, params)
+		mixset = self._request(path, sup_params=params)['mix_set']
 
 		# Instantiating mixes
-		mixset['mixes'] = [Mix(data, self) for data in mixset['mixes']]
+		mixset['mixes'] = [Mix(data, api=self) for data in mixset['mixes']]
 
 		return mixset
 
 	def play_token(self):
 		return self._request('sets/new')['play_token']
 
-	def play_mix(self, mix_id, play_token):
-		path = 'sets/{}/play'.format(play_token)
+	def play_mix(self, mix_id, play_token, first=False):
+		if first:
+			path = 'sets/{}/play'.format(play_token)
+		else:
+			path = 'sets/{}/next'.format(play_token)
 		params = dict(mix_id=mix_id)
 		playback = self._request(path, params)['set']
-		playback['track'] = Track(playback['track'], self)
-		return playback
-
-	def next_track(self, mix_id, play_token):
-		path = 'sets/{}/next'.format(play_token)
-		params = dict(mix_id=mix_id)
-		playback = self._request(path, params)['set']
-		playback['track'] = Track(playback['track'], self)
+		playback['track'] = Track(playback['track'], mix_id, api=self)
 		return playback
 
 	def report_track(self, mix_id, track_id):

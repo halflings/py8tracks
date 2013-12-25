@@ -26,7 +26,7 @@ Let's see an example showing many features of the 8tracks API:
 
 Here's the output of this program:
 
-Found 12 mixes for the tags: classical, baroque
+	Found 12 mixes for the tags: classical, baroque
 
 	Mix #3010408 ('Baroque II') - 9 tracks
 
