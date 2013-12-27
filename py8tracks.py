@@ -99,7 +99,7 @@ class API8tracks(object):
 		smart_id = None
 
 		if tags:
-			tags = map(lambda s : urllib.quote(s), tags)
+			tags = map(lambda s : urllib.quote(s.strip()), tags)
 			smart_id = 'tags:{}'.format('+'.join(tags))
 		if smart_id is None:
 			smart_id = 'all'
