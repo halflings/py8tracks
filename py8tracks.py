@@ -47,8 +47,10 @@ class Mix(object):
 
 	@property
 	def play_token(self):
-	    return self._play_token if self._play_token else self.api.play_token()
-
+		if self._play_token is None:
+			self._play_token = self.api.play_token()
+		return self._play_token
+		
 	def __iter__(self):
 		return self
 
@@ -58,7 +60,6 @@ class Mix(object):
 			self.current = self.api.play_mix(self.data['id'], self.play_token, first=True)
 		else:
 			self.current = self.api.play_mix(self.data['id'], self.play_token, first=False)
-
 		# If we played all the mix's songs
 		if self.current['at_end']:
 			raise StopIteration("Mix exhausted: No more tracks to play")
